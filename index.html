@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeshCentral Config Sanitizer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        body {
+            background-color: #0d1117;
+            color: #c9d1d8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+            flex-shrink: 0;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background-color: #21262d;
+            color: #c9d1d8;
+            border: 1px solid #30363d;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        button:hover {
+            background-color: #30363d;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+        .header-right a {
+            color: #ddd;
+            text-decoration: none;
+        }
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        #editor {
+            flex: 1;
+            background-color: #0d1117;
+            color: #7ee787;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            margin-top: auto;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        #editor::placeholder {
+            color: #8b949e;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">MeshCentral Config Sanitizer</div>
+        <div class="header-controls">
+            <div class="buttons">
+                <input type="file" id="fileInput" accept=".json" style="display: none;">
+                <button title="Upload a config.json file from your device" onclick="document.getElementById('fileInput').click();">Upload</button>
+                <button title="Download the current content as sanitized-config.json" onclick="downloadConfig();">Download</button>
+                <button title="Redact sensitive information like passwords, domains, IPs, and user groups" onclick="sanitizeConfig();">Hide Sensitive</button>
+                <button title="Remove configuration keys that are irrelevant for sharing (e.g., titles, comments, UI settings)" onclick="cleanupConfig();">Remove Irrelevant</button>
+                <button id="copyBtn" title="Copy the current content to clipboard" onclick="copyToClipboard();">Copy</button>
+            </div>
+            <div class="header-right">
+                <img src="https://avatars.githubusercontent.com/u/106290334" alt="Logo" class="logo">
+                <a href="https://github.com/Melo-Professional/" target="_blank" style="color: #ddd; text-decoration: none;">Melo</a>
+            </div>
+        </div>
+    </div>
+    <div class="editor-container">
+        <textarea id="editor" placeholder="Paste your config.json here or upload a file..."></textarea>
+    </div>
+
+    <script>
+        // List of keys whose values should be redacted (add more here as needed)
+        const redactKeys = [
+            "Title",
+            "title",
+            "title2",
+            "titlePicture",
+            "loginPicture",
+            "welcomePicture",
+            "welcomeText",
+            "pwaLogo",
+            "meshMessengerTitle",
+            "pass"
+        ];
+
+        // List of irrelevant keys to remove (add more here as needed; keys starting with '_' are handled separately)
+        const irrelevantKeys = [
+            "agentCustomization",
+            "agentFileInfo",
+            "assistantCustomization",
+            "androidCustomization",
+            "Title",
+            "title",
+            "title2",
+            "titlePicture",
+            "loginPicture",
+            "welcomePicture",
+            "welcomeText",
+            "pwaLogo",
+            "meshMessengerTitle",
+            "maxDeviceView",
+            "nightMode",
+            "scrollToTop",
+            "meshMessengerPicture",
+            "footer",
+            "hide",
+            "loginfooter",
+            "passwordRequirements",
+            "showNotesPanel",
+            "userSessionsSort",
+            "consentMessages",
+            "redirects",
+            "userConsentFlags",
+            "notificationMessages",
+            "desktopPrivacyBarText",
+            "localSessionRecording",
+            "sessionRecording",
+            "showPasswordLogin",
+            "showLanguageSelect"
+        ];
+
+        const sensitiveKeys = new Set([
+            ...redactKeys,
+            "key",
+            "password",
+            "secret",
+            "clientSecret",
+            "clientId",
+            "sessionsecret",
+            "authCookieEncryptionKey",
+            "agentAuthToken",
+            "bindPw",
+            "bindDn",
+            "connectionString",
+            "sessionKey",
+            "orphanAgentUser"
+        ]);
+
+        const userGroupKeys = ["manageAllDeviceGroups", "manageCrossDomain"];
+
+        const redactSectionsSet = new Set([
+            "agentCustomization",
+            "agentFileInfo",
+            "assistantCustomization",
+            "androidCustomization"
+        ]);
+
+        const whitelistedDomains = new Set([
+            "meshcentral.com",
+            "cloudflare.com",
+            "google.com"
+        ]);
+
+        const tlds = new Set([
+            "com",
+            "net",
+            "org",
+            "io",
+            "de",
+            "edu",
+            "gov",
+            "mil",
+            "uk",
+            "ca",
+            "au",
+            "fr",
+            "jp",
+            "cn",
+            "in",
+            "br",
+            "ru",
+            "it",
+            "es"
+        ]);
+
+        const domainRegex = /\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\b/g;
+
+        const ipRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g;
+
+        function isInternalIP(ip) {
+            const parts = ip.split('.').map(Number);
+            if (parts.length !== 4 || parts.some(p => p < 0 || p > 255)) return false;
+            const [a, b] = parts;
+            if (a === 127) return true;
+            if (a === 10) return true;
+            if (a === 172 && b >= 16 && b <= 31) return true;
+            if (a === 192 && b === 168) return true;
+            return false;
+        }
+
+        function getBaseDomain(fullDomain) {
+            const parts = fullDomain.split('.');
+            if (parts.length < 2) return fullDomain;
+            return parts.slice(-2).join('.');
+        }
+
+        function collectBaseDomains(obj, baseDomains = new Set()) {
+            if (typeof obj === 'string') {
+                let match;
+                domainRegex.lastIndex = 0;
+                while ((match = domainRegex.exec(obj)) !== null) {
+                    const full = match[0];
+                    const base = getBaseDomain(full);
+                    const lastPart = base.split('.').pop().toLowerCase();
+                    if (!tlds.has(lastPart)) continue;
+                    if (!whitelistedDomains.has(base)) {
+                        baseDomains.add(base);
+                    }
+                }
+            } else if (Array.isArray(obj)) {
+                obj.forEach(value => collectBaseDomains(value, baseDomains));
+            } else if (obj !== null && typeof obj === 'object') {
+                Object.entries(obj).forEach(([key, value]) => {
+                    if (key === '$schema') return;
+                    collectBaseDomains(value, baseDomains);
+                });
+            }
+            return baseDomains;
+        }
+
+        function collectIPsFromObj(obj, ips = new Set()) {
+            if (typeof obj === 'string') {
+                let match;
+                ipRegex.lastIndex = 0;
+                while ((match = ipRegex.exec(obj)) !== null) {
+                    const ip = match[0];
+                    if (!isInternalIP(ip)) {
+                        ips.add(ip);
+                    }
+                }
+            } else if (Array.isArray(obj)) {
+                obj.forEach(value => collectIPsFromObj(value, ips));
+            } else if (obj !== null && typeof obj === 'object') {
+                Object.entries(obj).forEach(([key, value]) => {
+                    collectIPsFromObj(value, ips);
+                });
+            }
+            return ips;
+        }
+
+        function collectUsersAndGroupsFromObj(obj) {
+            const userMap = new Map();
+            const groupMap = new Map();
+
+            function recurse(current) {
+                if (Array.isArray(current)) {
+                    current.forEach(item => recurse(item));
+                } else if (typeof current === 'object' && current !== null) {
+                    Object.entries(current).forEach(([key, value]) => {
+                        if (userGroupKeys.includes(key) && Array.isArray(value)) {
+                            value.forEach(path => {
+                                if (typeof path === 'string' && path.startsWith("user/")) {
+                                    const parts = path.substring(5).split('/');
+                                    let group = '';
+                                    let user = '';
+                                    if (parts.length >= 1) {
+                                        user = parts[parts.length - 1];
+                                        if (parts.length > 1) {
+                                            group = parts[0];
+                                        }
+                                    }
+                                    if (user.includes('@')) {
+                                        const [u] = user.split('@');
+                                        user = u;
+                                    }
+                                    if (user && !userMap.has(user)) {
+                                        userMap.set(user, `user-${userMap.size + 1}`);
+                                    }
+                                    if (group && !groupMap.has(group)) {
+                                        groupMap.set(group, `domain-${groupMap.size + 1}`);
+                                    }
+                                }
+                            });
+                        } else {
+                            recurse(value);
+                        }
+                    });
+                }
+            }
+            recurse(obj);
+
+            // Also check for orphanAgentUser
+            function findOrphan(current) {
+                if (Array.isArray(current)) {
+                    current.forEach(findOrphan);
+                } else if (typeof current === 'object' && current !== null) {
+                    Object.entries(current).forEach(([key, value]) => {
+                        if (key === "orphanAgentUser" && typeof value === 'string') {
+                            if (!userMap.has(value)) {
+                                userMap.set(value, `user-${userMap.size + 1}`);
+                            }
+                        } else {
+                            findOrphan(value);
+                        }
+                    });
+                }
+            }
+            findOrphan(obj);
+
+            return { userMap, groupMap };
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function replaceInString(str, baseDomainMap) {
+            let replaced = str;
+            Object.entries(baseDomainMap).forEach(([base, placeholder]) => {
+                const baseRegex = new RegExp(escapeRegExp(base), 'g');
+                replaced = replaced.replace(baseRegex, placeholder);
+            });
+            return replaced;
+        }
+
+        function replaceIPs(obj, ipMap) {
+            if (typeof obj === 'string') {
+                let replaced = obj;
+                Object.entries(ipMap).forEach(([original, replacement]) => {
+                    const regex = new RegExp(escapeRegExp(original), 'g');
+                    replaced = replaced.replace(regex, replacement);
+                });
+                return replaced;
+            } else if (Array.isArray(obj)) {
+                return obj.map(item => replaceIPs(item, ipMap));
+            } else if (obj !== null && typeof obj === 'object') {
+                const newObj = {};
+                Object.entries(obj).forEach(([key, value]) => {
+                    newObj[key] = replaceIPs(value, ipMap);
+                });
+                return newObj;
+            }
+            return obj;
+        }
+
+        function replaceDomains(obj, baseDomainMap) {
+            if (typeof obj === 'string') {
+                return replaceInString(obj, baseDomainMap);
+            } else if (Array.isArray(obj)) {
+                return obj.map(item => replaceDomains(item, baseDomainMap));
+            } else if (obj !== null && typeof obj === 'object') {
+                const newObj = {};
+                Object.entries(obj).forEach(([key, value]) => {
+                    newObj[key] = replaceDomains(value, baseDomainMap);
+                });
+                return newObj;
+            }
+            return obj;
+        }
+
+        function sanitizeUserGroups(obj, userMap, groupMap) {
+            function recurse(current) {
+                if (Array.isArray(current)) {
+                    return current.map(item => {
+                        if (typeof item === 'string' && item.startsWith('user/')) {
+                            const parts = item.substring(5).split('/');
+                            let newPath = 'user/';
+                            if (parts.length >= 1) {
+                                let user = parts[parts.length - 1];
+                                let group = parts.length > 1 ? parts[0] : '';
+                                let emailDomain = '';
+                                if (user.includes('@')) {
+                                    const [u, d] = user.split('@');
+                                    user = u;
+                                    emailDomain = '@' + d;
+                                }
+                                const userPlaceholder = userMap.get(user) || user;
+                                if (group === '') {
+                                    newPath += '/' + userPlaceholder + emailDomain;
+                                } else {
+                                    const groupPlaceholder = groupMap.get(group) || group;
+                                    newPath += groupPlaceholder + '/' + userPlaceholder + emailDomain;
+                                }
+                            }
+                            return newPath;
+                        }
+                        return recurse(item);
+                    });
+                } else if (typeof current === 'object' && current !== null) {
+                    const newObj = {};
+                    Object.entries(current).forEach(([key, value]) => {
+                        if (userGroupKeys.includes(key) && Array.isArray(value)) {
+                            newObj[key] = recurse(value);
+                        } else {
+                            newObj[key] = recurse(value);
+                        }
+                    });
+                    return newObj;
+                }
+                return current;
+            }
+            return recurse(obj);
+        }
+
+        function redactSections(obj) {
+            function recurse(current, inSection = false) {
+                if (typeof current !== 'object' || current === null) {
+                    return inSection ? "REDACTED" : current;
+                }
+                if (Array.isArray(current)) {
+                    return current.map(item => recurse(item, inSection));
+                }
+                const newObj = {};
+                Object.entries(current).forEach(([key, value]) => {
+                    const section = redactSectionsSet.has(key);
+                    newObj[key] = recurse(value, inSection || section);
+                });
+                return newObj;
+            }
+            return recurse(obj);
+        }
+
+        function replaceSensitive(obj, sensitiveSet, userMap) {
+            if (obj === null || typeof obj !== 'object') {
+                return obj;
+            }
+            if (Array.isArray(obj)) {
+                return obj.map(value => replaceSensitive(value, sensitiveSet, userMap));
+            }
+            const newObj = {};
+            Object.entries(obj).forEach(([key, value]) => {
+                if (sensitiveSet.has(key)) {
+                    if (key === "orphanAgentUser" && typeof value === 'string') {
+                        const placeholder = userMap.get(value);
+                        newObj[key] = placeholder !== undefined ? placeholder : "REDACTED";
+                    } else {
+                        newObj[key] = "REDACTED";
+                    }
+                } else {
+                    newObj[key] = replaceSensitive(value, sensitiveSet, userMap);
+                }
+            });
+            return newObj;
+        }
+
+        function cleanupConfig() {
+            const editor = document.getElementById('editor');
+            const text = editor.value.trim();
+            if (!text) {
+                alert('Please paste or upload a config.json first.');
+                return;
+            }
+            try {
+                const obj = JSON.parse(text);
+                const cleaned = removeIrrelevant(obj);
+                const cleanedText = JSON.stringify(cleaned, null, 2);
+                editor.value = cleanedText;
+            } catch (error) {
+                alert('Invalid JSON: ' + error.message);
+            }
+        }
+
+        function removeIrrelevant(obj) {
+            if (obj === null || typeof obj !== 'object') {
+                return obj;
+            }
+            if (Array.isArray(obj)) {
+                return obj.map(item => removeIrrelevant(item)).filter(item => item !== undefined);
+            }
+            const newObj = {};
+            Object.entries(obj).forEach(([key, value]) => {
+                if (key.startsWith('_') || irrelevantKeys.includes(key)) {
+                    return; // Skip this key and its value
+                }
+                newObj[key] = removeIrrelevant(value);
+            });
+            return newObj;
+        }
+
+        function sanitizeConfig() {
+            const editor = document.getElementById('editor');
+            const text = editor.value.trim();
+            if (!text) {
+                alert('Please paste or upload a config.json first.');
+                return;
+            }
+            try {
+                const obj = JSON.parse(text);
+
+                const { userMap, groupMap } = collectUsersAndGroupsFromObj(obj);
+
+                const ips = collectIPsFromObj(obj);
+                const ipMap = {};
+                let ipCounter = 1;
+                Array.from(ips).sort().forEach(ip => {
+                    ipMap[ip] = `REDACTED_IP-${ipCounter++}`;
+                });
+
+                let sanitized = replaceIPs(obj, ipMap);
+
+                const baseDomains = collectBaseDomains(sanitized);
+                const baseDomainMap = {};
+                let counter = 1;
+                Array.from(baseDomains).forEach(base => {
+                    baseDomainMap[base] = `domain-${counter++}.com`;
+                });
+
+                sanitized = replaceDomains(sanitized, baseDomainMap);
+
+                sanitized = sanitizeUserGroups(sanitized, userMap, groupMap);
+                sanitized = redactSections(sanitized);
+                sanitized = replaceSensitive(sanitized, sensitiveKeys, userMap);
+
+                const sanitizedText = JSON.stringify(sanitized, null, 2);
+                editor.value = sanitizedText;
+            } catch (error) {
+                alert('Invalid JSON: ' + error.message);
+            }
+        }
+
+        function copyToClipboard() {
+            const editor = document.getElementById('editor');
+            const text = editor.value.trim();
+            if (!text) {
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('editor').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+        function downloadConfig() {
+            const editor = document.getElementById('editor');
+            const text = editor.value.trim();
+            if (!text) {
+                alert('No content to download.');
+                return;
+            }
+            const blob = new Blob([text], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sanitized-config.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
