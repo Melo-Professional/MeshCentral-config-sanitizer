@@ -38,10 +38,12 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .buttons {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
         button {
             background-color: #21262d;
@@ -69,9 +71,41 @@
             height: 32px;
             border-radius: 50%;
         }
-        .header-right a {
+        .profile-dropdown {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .profile-name {
             color: #ddd;
+            cursor: pointer;
             text-decoration: none;
+            font-weight: 500;
+        }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            min-width: 150px;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+			font-size: smaller;
+        }
+        .dropdown-menu a {
+            color: #c9d1d8;
+            text-decoration: none;
+            padding: 8px 16px;
+            display: block;
+            transition: background-color 0.2s ease;
+        }
+        .dropdown-menu a:hover {
+            background-color: #30363d;
         }
         .editor-container {
             flex: 1;
@@ -87,12 +121,119 @@
             padding: 16px;
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 14px;
-            margin-top: auto;
             resize: vertical;
             line-height: 1.5;
         }
         #editor::placeholder {
             color: #8b949e;
+        }
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .toast {
+            background-color: #21262d;
+            color: #c9d1d8;
+            border: 1px solid #30363d;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 5px;
+            cursor: default;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+            cursor: default;
+        }
+        ::-webkit-scrollbar-track {
+            background: #222;
+            cursor: default;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .title {
+                font-size: 20px;
+                text-align: center;
+            }
+            .header-controls {
+                justify-content: space-between;
+                gap: 5px;
+            }
+            .buttons {
+                flex: 1;
+                justify-content: center;
+                gap: 5px;
+            }
+            button {
+                padding: 6px 12px;
+                font-size: 12px;
+                flex: 1;
+                min-width: 70px;
+            }
+            .header-right {
+                gap: 4px;
+            }
+            .logo {
+                width: 24px;
+                height: 24px;
+            }
+            .profile-name {
+                font-size: 14px;
+            }
+            .dropdown-menu {
+                right: -50px;
+                min-width: 140px;
+            }
+            #editor {
+                padding: 12px;
+                font-size: 12px;
+            }
+            #toast-container {
+                bottom: 10px;
+                right: 10px;
+            }
+            .toast {
+                max-width: 250px;
+                font-size: 12px;
+            }
+        }
+        @media (max-width: 480px) {
+            .buttons {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+            .header-controls {
+                flex-direction: column;
+                gap: 5px;
+            }
+            .header-right {
+                align-self: center;
+            }
         }
     </style>
 </head>
@@ -101,22 +242,29 @@
         <div class="title">MeshCentral Config Sanitizer</div>
         <div class="header-controls">
             <div class="buttons">
-                <input type="file" id="fileInput" accept=".json" style="display: none;">
-                <button title="Upload a config.json file from your device" onclick="document.getElementById('fileInput').click();">Upload</button>
+                <input type="file" id="fileInput" accept=".json,.txt" style="display: none;">
+                <button title="Upload a config.json or .txt file from your device" onclick="document.getElementById('fileInput').click();">Upload</button>
                 <button title="Download the current content as sanitized-config.json" onclick="downloadConfig();">Download</button>
                 <button title="Redact sensitive information like passwords, domains, IPs, and user groups" onclick="sanitizeConfig();">Hide Sensitive</button>
                 <button title="Remove configuration keys that are irrelevant for sharing (e.g., titles, comments, UI settings)" onclick="cleanupConfig();">Remove Irrelevant</button>
                 <button id="copyBtn" title="Copy the current content to clipboard" onclick="copyToClipboard();">Copy</button>
             </div>
             <div class="header-right">
-                <img src="https://avatars.githubusercontent.com/u/106290334" alt="Logo" class="logo">
-                <a href="https://github.com/Melo-Professional/" target="_blank" style="color: #ddd; text-decoration: none;">Melo</a>
+                <div class="profile-dropdown">
+                    <img src="https://avatars.githubusercontent.com/u/106290334" alt="Logo" class="logo">
+                    <span class="profile-name" onclick="toggleDropdown()">Melo</span>
+                    <div class="dropdown-menu" id="dropdown-menu">
+                        <a href="https://github.com/Melo-Professional/" target="_blank">My GitHub</a>
+                        <a href="https://melo-professional.github.io/MeshCentral-config-generator/" target="_blank">Config Generator</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     <div class="editor-container">
         <textarea id="editor" placeholder="Paste your config.json here or upload a file..."></textarea>
     </div>
+    <div id="toast-container"></div>
 
     <script>
         // List of keys whose values should be redacted (add more here as needed)
@@ -487,7 +635,7 @@
             const editor = document.getElementById('editor');
             const text = editor.value.trim();
             if (!text) {
-                alert('Please paste or upload a config.json first.');
+                showToast('Please paste or upload a config.json first.');
                 return;
             }
             try {
@@ -496,7 +644,7 @@
                 const cleanedText = JSON.stringify(cleaned, null, 2);
                 editor.value = cleanedText;
             } catch (error) {
-                alert('Invalid JSON: ' + error.message);
+                showToast('Invalid JSON: ' + error.message);
             }
         }
 
@@ -521,7 +669,7 @@
             const editor = document.getElementById('editor');
             const text = editor.value.trim();
             if (!text) {
-                alert('Please paste or upload a config.json first.');
+                showToast('Please paste or upload a config.json first.');
                 return;
             }
             try {
@@ -554,8 +702,20 @@
                 const sanitizedText = JSON.stringify(sanitized, null, 2);
                 editor.value = sanitizedText;
             } catch (error) {
-                alert('Invalid JSON: ' + error.message);
+                showToast('Invalid JSON: ' + error.message);
             }
+        }
+
+        function showToast(message, duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
         }
 
         function copyToClipboard() {
@@ -593,7 +753,7 @@
             const editor = document.getElementById('editor');
             const text = editor.value.trim();
             if (!text) {
-                alert('No content to download.');
+                showToast('No content to download.');
                 return;
             }
             const blob = new Blob([text], { type: 'application/json' });
@@ -606,6 +766,31 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        // TAB key handling for textarea
+        document.getElementById('editor').addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+            }
+        });
+
+        // Dropdown functionality
+        function toggleDropdown() {
+            const menu = document.getElementById('dropdown-menu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.profile-dropdown');
+            const menu = document.getElementById('dropdown-menu');
+            if (dropdown && !dropdown.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
