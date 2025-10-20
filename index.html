@@ -113,19 +113,7 @@
             flex-direction: column;
         }
         #editor {
-            flex: 1;
-            background-color: #0d1117;
-            color: #7ee787;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 16px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            resize: vertical;
-            line-height: 1.5;
-        }
-        #editor::placeholder {
-            color: #8b949e;
+            display: none;
         }
         #toast-container {
             position: fixed;
@@ -207,10 +195,6 @@
                 right: -50px;
                 min-width: 140px;
             }
-            #editor {
-                padding: 12px;
-                font-size: 12px;
-            }
             #toast-container {
                 bottom: 10px;
                 right: 10px;
@@ -235,7 +219,26 @@
                 align-self: center;
             }
         }
+        .CodeMirror {
+            flex: 1 1 auto;
+            height: auto;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .CodeMirror-scroll {
+            height: 100%;
+        }
+        .cm-s-dracula .cm-property { color: #0f0 !important; }
+        .cm-s-dracula .cm-string:not(.cm-property) {  color: #bcbcbc !important; }
+        .cm-s-dracula .cm-number { color: #ae81ff !important; }
+        .cm-s-dracula .cm-atom { color: #f92672 !important; }
+        .cm-s-dracula .cm-comment { color: #75715e !important; }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/theme/dracula.min.css">
 </head>
 <body>
     <div class="header">
@@ -266,7 +269,56 @@
     </div>
     <div id="toast-container"></div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/javascript/javascript.min.js"></script>
     <script>
+		// Define custom mode
+		CodeMirror.defineMode("customjson", function(config) {
+			var jsonMode = CodeMirror.getMode(config, { name: "javascript", json: true });
+		
+			return {
+				startState: function() { return jsonMode.startState(); },
+		
+				token: function(stream, state) {
+					// Detect keys manually before delegating to jsonMode
+					if (stream.peek() === '"') {
+						stream.next();
+						let key = "";
+						while (!stream.eol()) {
+							const ch = stream.next();
+							if (ch === '"') break;
+							key += ch;
+						}
+		
+						// Look ahead to see if it's a key (followed by :)
+						const ahead = stream.string.slice(stream.pos).trimStart();
+						if (ahead.startsWith(":")) {
+							if (key.startsWith("_")) return "comment";
+							return "property";
+						}
+		
+						return "string";
+					}
+		
+					// Fallback to normal JSON behavior
+					var style = jsonMode.token(stream, state);
+					return style;
+				},
+		
+				indent: function(state, textAfter) {
+					return jsonMode.indent && jsonMode.indent(state, textAfter);
+				},
+				electricChars: jsonMode.electricChars,
+				innerMode: function(state) {
+					return { state: state, mode: jsonMode };
+				},
+				blankLine: function(state) {
+					if (jsonMode.blankLine) jsonMode.blankLine(state);
+				}
+			};
+		});
+
+
         // List of keys whose values should be redacted (add more here as needed)
         const redactKeys = [
             "Title",
@@ -632,8 +684,7 @@
         }
 
         function cleanupConfig() {
-            const editor = document.getElementById('editor');
-            const text = editor.value.trim();
+            const text = codeEditor.getValue().trim();
             if (!text) {
                 showToast('Please paste or upload a config.json first.');
                 return;
@@ -642,7 +693,7 @@
                 const obj = JSON.parse(text);
                 const cleaned = removeIrrelevant(obj);
                 const cleanedText = JSON.stringify(cleaned, null, 2);
-                editor.value = cleanedText;
+                codeEditor.setValue(cleanedText);
             } catch (error) {
                 showToast('Invalid JSON: ' + error.message);
             }
@@ -666,8 +717,7 @@
         }
 
         function sanitizeConfig() {
-            const editor = document.getElementById('editor');
-            const text = editor.value.trim();
+            const text = codeEditor.getValue().trim();
             if (!text) {
                 showToast('Please paste or upload a config.json first.');
                 return;
@@ -700,7 +750,7 @@
                 sanitized = replaceSensitive(sanitized, sensitiveKeys, userMap);
 
                 const sanitizedText = JSON.stringify(sanitized, null, 2);
-                editor.value = sanitizedText;
+                codeEditor.setValue(sanitizedText);
             } catch (error) {
                 showToast('Invalid JSON: ' + error.message);
             }
@@ -719,8 +769,7 @@
         }
 
         function copyToClipboard() {
-            const editor = document.getElementById('editor');
-            const text = editor.value.trim();
+            const text = codeEditor.getValue().trim();
             if (!text) {
                 return;
             }
@@ -741,7 +790,14 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('editor').value = e.target.result;
+                    let content = e.target.result;
+                    try {
+                        const obj = JSON.parse(content);
+                        content = JSON.stringify(obj, null, 2);
+                    } catch (error) {
+                        showToast('Invalid JSON: loaded as is.');
+                    }
+                    codeEditor.setValue(content);
                 };
                 reader.readAsText(file);
             }
@@ -750,8 +806,7 @@
         document.getElementById('fileInput').addEventListener('change', handleFileUpload);
 
         function downloadConfig() {
-            const editor = document.getElementById('editor');
-            const text = editor.value.trim();
+            const text = codeEditor.getValue().trim();
             if (!text) {
                 showToast('No content to download.');
                 return;
@@ -767,17 +822,6 @@
             URL.revokeObjectURL(url);
         }
 
-        // TAB key handling for textarea
-        document.getElementById('editor').addEventListener('keydown', function(e) {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
-                this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
-                this.selectionStart = this.selectionEnd = start + 1;
-            }
-        });
-
         // Dropdown functionality
         function toggleDropdown() {
             const menu = document.getElementById('dropdown-menu');
@@ -791,6 +835,38 @@
                 menu.style.display = 'none';
             }
         });
+
+        // Initialize CodeMirror
+        const textarea = document.getElementById('editor');
+        const codeEditor = CodeMirror.fromTextArea(textarea, {
+            mode: "customjson",
+            theme: "dracula",
+            lineNumbers: true,
+            indentUnit: 2,
+            tabSize: 2,
+            indentWithTabs: false,
+            matchBrackets: true,
+            autoCloseBrackets: true,
+            showCursorWhenSelecting: true,
+            extraKeys: { "Tab": "indentMore", "Shift-Tab": "indentLess" }
+        });
+
+        // Placeholder workaround
+        const placeholderText = "Paste your config.json here or upload a file...";
+        const placeholderEl = document.createElement('span');
+        placeholderEl.textContent = placeholderText;
+        placeholderEl.style.color = '#8b949e';
+        placeholderEl.style.position = 'absolute';
+        placeholderEl.style.pointerEvents = 'none';
+        placeholderEl.style.padding = '16px';
+        placeholderEl.style.zIndex = '10';
+        codeEditor.getWrapperElement().appendChild(placeholderEl);
+
+        function updatePlaceholder() {
+            placeholderEl.style.display = codeEditor.getValue() === '' ? 'block' : 'none';
+        }
+        updatePlaceholder();
+        codeEditor.on('change', updatePlaceholder);
     </script>
 </body>
 </html>
