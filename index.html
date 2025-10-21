@@ -324,13 +324,16 @@
             "Title",
             "title",
             "title2",
+			"subtitle",
             "titlePicture",
             "loginPicture",
             "welcomePicture",
             "welcomeText",
             "pwaLogo",
             "meshMessengerTitle",
-            "pass"
+			"image",
+			"loginfooter",
+			"footer"
         ];
 
         // List of irrelevant keys to remove (add more here as needed; keys starting with '_' are handled separately)
@@ -376,17 +379,45 @@
             "secret",
             "clientSecret",
             "clientId",
-            "sessionsecret",
             "authCookieEncryptionKey",
             "agentAuthToken",
             "bindPw",
             "bindDn",
             "connectionString",
             "sessionKey",
-            "orphanAgentUser"
+            "orphanAgentUser",
+            "pass",
+			"ssid",
+			"certfiles",
+			"user",
+			"names",
+			"clientid",
+			"clientsecret",
+			"refreshToken",
+			"tenantid",
+			"keyfile",
+			"apikey",
+			"token",
+			"runas",
+			"loginfooter",
+			"footer",
+			"agentKey",
+			"loginKey",
+			"zipPassword",
+			"syslogauth",
+			"dbRecordsEncryptKey",
+			"dbRecordsDecryptKey",
+			"dbEncryptKey",
+			"certificatePrivateKeyPassword",
+			"id",
+			"newMebxPassword",
+			"username",
+			"from",
+			"newAccountsUserGroups",
+			"agentCoreDumpUsers"
         ]);
 
-        const userGroupKeys = ["manageAllDeviceGroups", "manageCrossDomain"];
+        const userGroupKeys = ["manageAllDeviceGroups", "manageCrossDomain", "adminAccounts", "InterUserMessaging"];
 
         const redactSectionsSet = new Set([
             "agentCustomization",
