@@ -9,7 +9,7 @@ Perfect for developers, admins, and support teams troubleshooting MeshCentral se
 ## 🌐 Live Demo
 
 Access the online tool here:  
-👉 **[https://melo-professional.github.io/MeshCentral-config-sanitizer/](https://melo-professional.github.io/MeshCentral-config-sanitizer/)**
+👉 **[https://sanitizer.meshcentraltools.com/](https://sanitizer.meshcentraltools.com/)**
 
 ## ⚙️ Features
 

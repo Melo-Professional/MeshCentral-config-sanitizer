@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MeshCentral Config Sanitizer</title>
+    <meta name="description" content="Clean and sanitize your MeshCentral configuration files safely with the Config Sanitizer. Automatically remove sensitive data before sharing configs or submitti" />
+    
+    <!-- Google / Search Engine Tags -->
+    <meta itemprop="name" content="MeshCentral Config Sanitizer" />
+    <meta itemprop="description" content="Clean and sanitize your MeshCentral configuration files safely with the Config Sanitizer. Automatically remove sensitive data before sharing configs or submitti" />
+    <meta itemprop="image" content="https://meshcentraltools.com/images/meshCentralBanner.png" />
+    
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="https://sanitizer.meshcentraltools.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="MeshCentral Config Sanitizer" />
+    <meta property="og:description" content="Clean and sanitize your MeshCentral configuration files safely with the Config Sanitizer. Automatically remove sensitive data before sharing configs or submitti" />
+    <meta property="og:image" content="https://meshcentraltools.com/images/meshCentralBanner.png" />
+    
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MeshCentral Config Sanitizer" />
+    <meta name="twitter:description" content="Clean and sanitize your MeshCentral configuration files safely with the Config Sanitizer. Automatically remove sensitive data before sharing configs or submitti" />
+    <meta name="twitter:image" content="https://meshcentraltools.com/images/meshCentralBanner.png" />
     <style>
         * {
             box-sizing: border-box;
@@ -76,6 +95,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
         }
         .profile-name {
             color: #ddd;
@@ -253,12 +273,12 @@
                 <button id="copyBtn" title="Copy the current content to clipboard" onclick="copyToClipboard();">Copy</button>
             </div>
             <div class="header-right">
-                <div class="profile-dropdown">
+                <div onclick="toggleDropdown()" class="profile-dropdown">
                     <img src="https://avatars.githubusercontent.com/u/106290334" alt="Logo" class="logo">
-                    <span class="profile-name" onclick="toggleDropdown()">Melo</span>
+                    <span class="profile-name">Melo</span>
                     <div class="dropdown-menu" id="dropdown-menu">
                         <a href="https://github.com/Melo-Professional/" target="_blank">My GitHub</a>
-                        <a href="https://melo-professional.github.io/MeshCentral-config-generator/" target="_blank">Config Generator</a>
+                        <a href="https://config.meshcentraltools.com/" target="_blank">Config Generator</a>
                     </div>
                 </div>
             </div>
