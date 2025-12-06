@@ -581,24 +581,74 @@ h1 {
 @media (max-width: 768px) {
     .header-top {
         flex-direction: column;
+        gap: 15px;
+        padding: 15px 10px;
+        align-items: stretch;
+    }
+
+    .header-left {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        text-align: center;
         gap: 10px;
+    }
+
+    .header-left h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-right {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+        gap: 8px;
+    }
+
+    /* Make buttons more touch-friendly on mobile */
+    .header-right button,
+    .header-right label,
+    .header-right .profile-dropdown {
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+        flex: 1 1 auto; /* Allow items to grow/shrink */
+        min-width: 80px; /* Minimum width for touch targets */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    /* Hide profile name on mobile to save space, keep logo */
+    .profile-name {
+        display: none;
+    }
+    
+    .profile-dropdown {
+        flex: 0 0 auto !important; /* Don't stretch the profile dropdown too much */
+        min-width: auto !important;
+        padding: 6px !important;
     }
 
     #validationMsg {
         position: static;
-        margin-top: 0;
+        margin-top: 5px;
+        text-align: center;
+        width: 100%;
     }
 
     .container {
         flex-direction: column;
         height: auto;
+        overflow-y: auto; /* Allow full page scroll */
     }
 
     .column.left,
     .column.right {
         flex-basis: auto;
+        width: 100%;
         margin: 0;
         padding: 10px;
+        overflow: visible; /* Let content flow */
     }
 
     .resizer {
@@ -606,9 +656,10 @@ h1 {
     }
 
     .help-tooltip {
-        left: auto;
-        right: 0;
+        left: 50%;
+        transform: translateX(-50%);
         width: 90vw;
+        top: 40px;
     }
 }
 
