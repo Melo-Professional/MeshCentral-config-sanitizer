@@ -59,6 +59,13 @@ h1 {
     gap: 10px;
 }
 
+.header-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
 .header-center {
     display: flex;
     align-items: center;
@@ -438,7 +445,6 @@ h1 {
     cursor: pointer;
     font-size: 14px;
     transition: background-color 0.2s ease, transform 0.1s ease;
-    margin-left: 5px;
 }
 
 #copyBtn:hover {
@@ -611,20 +617,20 @@ h1 {
     .header-right .profile-dropdown {
         padding: 10px 16px !important;
         font-size: 14px !important;
-        flex: 1 1 auto; /* Allow items to grow/shrink */
-        min-width: 80px; /* Minimum width for touch targets */
+        flex: 0 0 auto;
+        min-width: auto;
         display: flex;
         justify-content: center;
         align-items: center;
     }
-    
+
     /* Hide profile name on mobile to save space, keep logo */
     .profile-name {
         display: none;
     }
-    
+
     .profile-dropdown {
-        flex: 0 0 auto !important; /* Don't stretch the profile dropdown too much */
+        flex: 0 0 auto !important;
         min-width: auto !important;
         padding: 6px !important;
     }
@@ -639,7 +645,7 @@ h1 {
     .container {
         flex-direction: column;
         height: auto;
-        overflow-y: auto; /* Allow full page scroll */
+        overflow-y: auto;
     }
 
     .column.left,
@@ -648,18 +654,20 @@ h1 {
         width: 100%;
         margin: 0;
         padding: 10px;
-        overflow: visible; /* Let content flow */
+        overflow: visible;
     }
 
     .resizer {
         display: none;
     }
 
-    .help-tooltip {
+    .help-icon .help-tooltip {
         left: 50%;
         transform: translateX(-50%);
-        width: 90vw;
-        top: 40px;
+        max-width: 90vw;
+        top: 100px;
+        box-sizing: border-box;
+        position: fixed;
     }
 }
 
