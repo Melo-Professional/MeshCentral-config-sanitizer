@@ -1,9 +1,11 @@
 <h1 align="center">MeshCentral Config Sanitizer</h1>
 
 <p align="center">
-<a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer"><img src="https://img.shields.io/github/stars/Melo-Professional/MeshCentral-config-sanitizer?style=social" alt="stars"></a>
-<a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer/forks"><img src="https://img.shields.io/github/forks/Melo-Professional/MeshCentral-config-sanitizer" alt="forks"></a>
-<a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Melo-Professional/MeshCentral-config-sanitizer" alt="license"></a>
+  <a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer"><img src="https://img.shields.io/github/stars/Melo-Professional/MeshCentral-config-sanitizer?style=social" alt="stars"></a>
+  <a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer/forks"><img src="https://img.shields.io/github/forks/Melo-Professional/MeshCentral-config-sanitizer?style=social" alt="forks"></a>
+  <a href="https://meshcentral.com"><img src="https://img.shields.io/badge/platform-MeshCentral-yellow.svg" alt="platform"></a>
+  <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202.0-9cf.svg" alt="license"></a>
+  <a href="#screenshots"><img src="https://img.shields.io/static/v1?label=made%20with&message=%E2%9D%A4&color=red"></a>
 </p>
 
 A lightweight, self-contained web tool to securely sanitize `config.json` files for MeshCentral servers. Easily redact sensitive data like passwords, domains, IPs, and user details before sharing configs publicly—without compromising structure or usability.
