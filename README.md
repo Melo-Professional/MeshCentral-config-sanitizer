@@ -1,15 +1,28 @@
-# MeshCentral Config Sanitizer
+<h1 align="center">MeshCentral Config Sanitizer</h1>
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/Melo-Professional/MeshCentral-config-sanitizer?style=social)](https://github.com/Melo-Professional/MeshCentral-config-sanitizer) [![GitHub forks](https://img.shields.io/github/forks/Melo-Professional/MeshCentral-config-sanitizer)](https://github.com/Melo-Professional/MeshCentral-config-sanitizer/forks) [![License](https://img.shields.io/github/license/Melo-Professional/MeshCentral-config-sanitizer)](https://github.com/Melo-Professional/MeshCentral-config-sanitizer/blob/main/LICENSE)
+<p align="center">
+<a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer"><img src="https://img.shields.io/github/stars/Melo-Professional/MeshCentral-config-sanitizer?style=social" alt="stars"></a>
+<a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer/forks"><img src="https://img.shields.io/github/forks/Melo-Professional/MeshCentral-config-sanitizer" alt="forks"></a>
+<a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Melo-Professional/MeshCentral-config-sanitizer" alt="license"></a>
+</p>
 
 A lightweight, self-contained web tool to securely sanitize `config.json` files for MeshCentral servers. Easily redact sensitive data like passwords, domains, IPs, and user details before sharing configs publicly—without compromising structure or usability.
 
 Perfect for developers, admins, and support teams troubleshooting MeshCentral setups while protecting privacy.
 
-## 🌐 Live Demo
+
+## 🌐 Live Tool
 
 Access the online tool here:  
-👉 **[https://sanitizer.meshcentraltools.com/](https://sanitizer.meshcentraltools.com/)**
+<p align="center">
+https://sanitizer.meshcentraltools.com<br>
+<br>
+
+<a href="https://sanitizer.meshcentraltools.com/">
+<img width="90%" alt="image" src="https://github.com/user-attachments/assets/935189ef-9b79-4b62-b888-5ef057e21e97" />
+  </a>
+</p>
+
 
 ## ⚙️ Features
 
@@ -64,6 +77,7 @@ Access the online tool here:
 
 ## 🤝 Contributing
 Fork, improve, and PR! Ideas for enhancements are welcome.
+
 
 ## 📄 License
 Apache 2.0 License—free to use, modify, and distribute. See [LICENSE](LICENSE).
