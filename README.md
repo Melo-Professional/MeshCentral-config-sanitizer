@@ -1,6 +1,10 @@
 <h1 align="center">MeshCentral Config Sanitizer</h1>
 
 <p align="center">
+<img width="20%" alt="banner" src="https://raw.githubusercontent.com/Melo-Professional/MeshCentral-config-sanitizer/refs/heads/main/images/logo.png" />
+</p>
+
+<p align="center">
   <a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer"><img src="https://img.shields.io/github/stars/Melo-Professional/MeshCentral-config-sanitizer?style=social" alt="stars"></a>
   <a href="https://github.com/Melo-Professional/MeshCentral-config-sanitizer/forks"><img src="https://img.shields.io/github/forks/Melo-Professional/MeshCentral-config-sanitizer?style=social" alt="forks"></a>
   <a href="https://meshcentral.com"><img src="https://img.shields.io/badge/platform-MeshCentral-yellow.svg" alt="platform"></a>
