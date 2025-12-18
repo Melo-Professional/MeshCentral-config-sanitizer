@@ -66,7 +66,7 @@ const sensitiveKeys = new Set([
     "syslogauth", "dbRecordsEncryptKey", "dbRecordsDecryptKey",
     "dbEncryptKey", "certificatePrivateKeyPassword", "id",
     "newMebxPassword", "username", "from", "newAccountsUserGroups",
-    "agentCoreDumpUsers"
+    "agentCoreDumpUsers","hmackey"
 ]);
 
 const userGroupKeys = ["manageAllDeviceGroups", "manageCrossDomain", "adminAccounts", "InterUserMessaging"];
