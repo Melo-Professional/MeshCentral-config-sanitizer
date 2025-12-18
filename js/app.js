@@ -66,7 +66,7 @@ const sensitiveKeys = new Set([
     "syslogauth", "dbRecordsEncryptKey", "dbRecordsDecryptKey",
     "dbEncryptKey", "certificatePrivateKeyPassword", "id",
     "newMebxPassword", "username", "from", "newAccountsUserGroups",
-    "agentCoreDumpUsers", "kid", "hmackey"
+    "agentCoreDumpUsers", "kid", "hmackey","mongoDb", "mongoDbName", "webPush.email"
 ]);
 
 const userGroupKeys = ["manageAllDeviceGroups", "manageCrossDomain", "adminAccounts", "InterUserMessaging"];
