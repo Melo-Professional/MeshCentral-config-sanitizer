@@ -53,7 +53,7 @@ const irrelevantKeys = [
     "consentMessages", "redirects", "userConsentFlags",
     "notificationMessages", "desktopPrivacyBarText",
     "localSessionRecording", "sessionRecording", "showPasswordLogin",
-    "showLanguageSelect"
+    "showLanguageSelect", "welcomePictureFullScreen"
 ];
 
 const sensitiveKeys = new Set([
