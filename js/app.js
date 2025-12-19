@@ -72,7 +72,12 @@ const sensitiveKeys = new Set([
 const userGroupKeys = ["manageAllDeviceGroups", "manageCrossDomain", "adminAccounts", "InterUserMessaging"];
 const redactSectionsSet = new Set(["agentCustomization", "agentFileInfo", "assistantCustomization", "androidCustomization"]);
 const whitelistedDomains = new Set(["meshcentral.com", "cloudflare.com", "google.com"]);
-const tlds = new Set(["com", "net", "org", "io", "de", "edu", "gov", "mil", "uk", "ca", "au", "fr", "jp", "cn", "in", "br", "ru", "it", "es"]);
+const tlds = new Set(["com", "net", "org", "info", "biz", "name", "pro", "io",
+                     "dev", "app", "cloud", "tech", "systems", "services",
+                     "network", "host", "edu", "gov", "mil", "be", "de", "fr",
+                     "it", "es", "pt", "nl", "ch", "se", "no", "fi", "dk", "ie",
+                     "at", "pl", "cz", "br", "ar", "cl", "mx", "co", "ca", "us",
+                     "jp", "cn", "in", "kr", "sg", "hk", "tw", "au", "nz", "uk", "me"]);
 const domainRegex = /\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\b/g;
 const ipRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g;
 
