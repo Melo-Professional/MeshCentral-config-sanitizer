@@ -41,7 +41,8 @@ const redactKeys = [
     "Title", "title", "title2", "subtitle", "titlePicture", "loginPicture",
     "welcomePicture", "welcomeText", "pwaLogo", "meshMessengerTitle",
     "image", "loginfooter", "footer"
-];
+].map(k => k.toLowerCase());
+
 
 const irrelevantKeys = [
     "agentCustomization", "agentFileInfo", "assistantCustomization",
@@ -54,7 +55,7 @@ const irrelevantKeys = [
     "notificationMessages", "desktopPrivacyBarText",
     "localSessionRecording", "sessionRecording", "showPasswordLogin",
     "showLanguageSelect", "welcomePictureFullScreen"
-];
+].map(k => k.toLowerCase());
 
 const sensitiveKeys = new Set([
     ...redactKeys, "key", "password", "secret", "clientSecret", "clientId",
@@ -65,21 +66,22 @@ const sensitiveKeys = new Set([
     "loginfooter", "footer", "agentKey", "loginKey", "zipPassword",
     "syslogauth", "dbRecordsEncryptKey", "dbRecordsDecryptKey",
     "dbEncryptKey", "certificatePrivateKeyPassword", "id",
-    "newMebxPassword", "username", "from", "newAccountsUserGroups",
-    "agentCoreDumpUsers", "kid", "hmackey","mongoDb", "mongoDbName", "webPush.email"
-]);
+    "newMebxPassword", "username", "from", "agentCoreDumpUsers", "kid",
+    "hmackey", "mongoDb", "mongoDbName", "webPush.email", "ldapOptions.bindDN",
+    "ldapOptions.bindCredentials", "ldapOptions.searchBase", "LDAPSiteAdminGroups", "ldapUserRequiredGroupMembership"
+].map(k => k.toLowerCase()));
 
-const userGroupKeys = ["manageAllDeviceGroups", "manageCrossDomain", "adminAccounts", "InterUserMessaging"];
-const redactSectionsSet = new Set(["agentCustomization", "agentFileInfo", "assistantCustomization", "androidCustomization"]);
+const userGroupKeys = ["manageAllDeviceGroups", "manageCrossDomain", "adminAccounts", "InterUserMessaging", "newAccountsUserGroups"].map(k => k.toLowerCase());
+const redactSectionsSet = new Set(["agentCustomization", "agentFileInfo", "assistantCustomization", "androidCustomization"].map(k => k.toLowerCase()));
 const whitelistedDomains = new Set(["meshcentral.com", "cloudflare.com", "google.com"]);
 const tlds = new Set(["com", "net", "org", "info", "biz", "name", "pro", "io",
-                     "dev", "app", "cloud", "tech", "systems", "services",
-                     "network", "host", "edu", "gov", "mil", "be", "de", "fr",
-                     "it", "es", "pt", "nl", "ch", "se", "no", "fi", "dk", "ie",
-                     "at", "pl", "cz", "br", "ar", "cl", "mx", "co", "ca", "us",
-                     "jp", "cn", "in", "kr", "sg", "hk", "tw", "au", "nz", "uk", "me"]);
+    "dev", "app", "cloud", "tech", "systems", "services",
+    "network", "host", "edu", "gov", "mil", "be", "de", "fr",
+    "it", "es", "pt", "nl", "ch", "se", "no", "fi", "dk", "ie",
+    "at", "pl", "cz", "br", "ar", "cl", "mx", "co", "ca", "us",
+    "jp", "cn", "in", "kr", "sg", "hk", "tw", "au", "nz", "uk", "me"]);
 const domainRegex = /\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\b/g;
-const ipRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g;
+const ipRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\b/g;
 
 function isInternalIP(ip) {
     const parts = ip.split('.').map(Number);
@@ -147,7 +149,7 @@ function collectUsersAndGroupsFromObj(obj) {
             current.forEach(item => recurse(item));
         } else if (typeof current === 'object' && current !== null) {
             Object.entries(current).forEach(([key, value]) => {
-                if (userGroupKeys.includes(key) && Array.isArray(value)) {
+                if (userGroupKeys.includes(key.toLowerCase()) && Array.isArray(value)) {
                     value.forEach(path => {
                         if (typeof path === 'string' && path.startsWith("user/")) {
                             const parts = path.substring(5).split('/');
@@ -178,7 +180,7 @@ function collectUsersAndGroupsFromObj(obj) {
             current.forEach(findOrphan);
         } else if (typeof current === 'object' && current !== null) {
             Object.entries(current).forEach(([key, value]) => {
-                if (key === "orphanAgentUser" && typeof value === 'string') {
+                if (key.toLowerCase() === "orphanagentuser" && typeof value === 'string') {
                     if (!userMap.has(value)) userMap.set(value, `user-${userMap.size + 1}`);
                 } else {
                     findOrphan(value);
@@ -270,7 +272,7 @@ function sanitizeUserGroups(obj, userMap, groupMap) {
         } else if (typeof current === 'object' && current !== null) {
             const newObj = {};
             Object.entries(current).forEach(([key, value]) => {
-                if (userGroupKeys.includes(key) && Array.isArray(value)) {
+                if (userGroupKeys.includes(key.toLowerCase()) && Array.isArray(value)) {
                     newObj[key] = recurse(value);
                 } else {
                     newObj[key] = recurse(value);
@@ -293,7 +295,7 @@ function redactSections(obj) {
         }
         const newObj = {};
         Object.entries(current).forEach(([key, value]) => {
-            const section = redactSectionsSet.has(key);
+            const section = redactSectionsSet.has(key.toLowerCase());
             newObj[key] = recurse(value, inSection || section);
         });
         return newObj;
@@ -301,22 +303,37 @@ function redactSections(obj) {
     return recurse(obj);
 }
 
-function replaceSensitive(obj, sensitiveSet, userMap) {
+function replaceSensitive(obj, sensitiveSet, userMap, path = []) {
     if (obj === null || typeof obj !== 'object') return obj;
     if (Array.isArray(obj)) {
-        return obj.map(value => replaceSensitive(value, sensitiveSet, userMap));
+        return obj.map(value => replaceSensitive(value, sensitiveSet, userMap, path));
     }
     const newObj = {};
     Object.entries(obj).forEach(([key, value]) => {
-        if (sensitiveSet.has(key)) {
-            if (key === "orphanAgentUser" && typeof value === 'string') {
+        const currentPath = [...path, key];
+        const keyLower = key.toLowerCase();
+        let match = sensitiveSet.has(keyLower);
+
+        if (!match) {
+            let suffix = keyLower;
+            for (let i = path.length - 1; i >= 0; i--) {
+                suffix = path[i].toLowerCase() + "." + suffix;
+                if (sensitiveSet.has(suffix)) {
+                    match = true;
+                    break;
+                }
+            }
+        }
+
+        if (match) {
+            if (keyLower === "orphanagentuser" && typeof value === 'string') {
                 const placeholder = userMap.get(value);
                 newObj[key] = placeholder !== undefined ? placeholder : "REDACTED";
             } else {
                 newObj[key] = "REDACTED";
             }
         } else {
-            newObj[key] = replaceSensitive(value, sensitiveSet, userMap);
+            newObj[key] = replaceSensitive(value, sensitiveSet, userMap, currentPath);
         }
     });
     return newObj;
@@ -341,7 +358,7 @@ function removeIrrelevant(obj) {
     }
     const newObj = {};
     Object.entries(obj).forEach(([key, value]) => {
-        if (key.startsWith('_') || irrelevantKeys.includes(key)) return;
+        if (key.startsWith('_') || irrelevantKeys.includes(key.toLowerCase())) return;
         newObj[key] = removeIrrelevant(value);
     });
     return newObj;
