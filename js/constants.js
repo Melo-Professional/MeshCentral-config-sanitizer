@@ -10,7 +10,7 @@ window.MCTools = window.MCTools || {};
 window.MCTools.redactKeys = [
     "Title", "title", "title2", "subtitle", "titlePicture", "loginPicture",
     "welcomePicture", "welcomeText", "pwaLogo", "meshMessengerTitle",
-    "image", "loginfooter", "footer"
+    "image", "loginfooter", "footer", "filename"
 ].map(k => k.toLowerCase());
 
 // Keys to remove when cleaning config
