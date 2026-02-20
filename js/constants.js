@@ -40,7 +40,7 @@ window.MCTools.sensitiveKeys = new Set([
     "newMebxPassword", "username", "from", "agentCoreDumpUsers", "kid",
     "hmackey", "mongoDb", "mongoDbName", "webPush.email", "ldapOptions.bindDN",
     "ldapOptions.bindCredentials", "ldapOptions.searchBase", "LDAPSiteAdminGroups",
-    "ldapUserRequiredGroupMembership", "client_secret"
+    "ldapUserRequiredGroupMembership", "client_secret", "client_id", "tenant_id"
 ].map(k => k.toLowerCase()));
 
 // Keys related to user/group management
